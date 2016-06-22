@@ -95,8 +95,8 @@ eric_window* eric_window_create( int width, int height, char* title )
 
     gtk_widget_set_app_paintable( w->window, TRUE );
 
-    g_signal_connect( G_OBJECT( w->window ), "draw", G_CALLBACK(eric_window_draw), &w );
-    g_signal_connect( G_OBJECT( w->window ), "screen-changed", G_CALLBACK(eric_window_screen_changed), &w );
+    g_signal_connect( G_OBJECT( w->window ), "draw", G_CALLBACK(eric_window_draw), (gpointer)w );
+    g_signal_connect( G_OBJECT( w->window ), "screen-changed", G_CALLBACK(eric_window_screen_changed), (gpointer)w );
 	g_signal_connect( G_OBJECT( w->window ), "delete-event", gtk_main_quit, NULL );
 
     eric_window_screen_changed( w->window, NULL, NULL );
@@ -115,9 +115,8 @@ eric_window* eric_window_create( int width, int height, char* title )
         gsettings = g_settings_new ( "org.gnome.desktop.background" );
     }
 
-    g_signal_connect_data( gsettings, "changed", G_CALLBACK( eric_window_gsettings_value_changed ), NULL, 0, 0 );
+    g_signal_connect_data( gsettings, "changed", G_CALLBACK( eric_window_gsettings_value_changed ), (gpointer)w, 0, 0 );
     gdk_rgba_parse( &w->background_color, g_settings_get_string( gsettings, "primary-color" ) );
-    printf( "COLOR: %s\n", g_settings_get_string( gsettings, "primary-color" ) );
 
     return w;
 }
