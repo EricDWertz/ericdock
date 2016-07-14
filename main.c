@@ -19,16 +19,25 @@ GdkFilterReturn handle_x11_event( GdkXEvent *xevent, GdkEvent *event, gpointer d
 
 int main( int argc, char* argv[] )
 {
+    int i;
+
     gtk_init( &argc, &argv );
 
-    eric_window* w = eric_window_create( 640, 480, "" );
+    eric_window* w = eric_window_create( 1920, 40, "" );
+    gtk_window_move( GTK_WINDOW( w->window ), 0, 1040 );
     gtk_window_set_type_hint( GTK_WINDOW( w->window ), GDK_WINDOW_TYPE_HINT_DOCK );
 
     gtk_widget_show_all( w->window );
 
     Display* dpy = GDK_DISPLAY_XDISPLAY( gdk_display_get_default() );
     Window xwin = RootWindow( dpy, DefaultScreen( dpy ) );
-    XGrabKey( dpy, AnyKey, ControlMask, xwin, True, GrabModeAsync, GrabModeAsync );
+
+    //Grab number keys 
+    for( i = 10; i <= 20; i++ )
+    {
+        XGrabKey( dpy, i, Mod4Mask | Mod2Mask, xwin, True, GrabModeAsync, GrabModeAsync );
+        XGrabKey( dpy, i, Mod4Mask, xwin, True, GrabModeAsync, GrabModeAsync );
+    }
 
     gdk_window_add_filter( NULL, handle_x11_event, NULL );
 
