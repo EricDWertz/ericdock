@@ -1,9 +1,8 @@
+#pragma once
 /*
  * eric_window.h
  * creates a transluscent window using the current theme color
  */
-
-#pragma once
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -16,14 +15,26 @@
  * TODO: add text color
  */
 
-typedef struct
+typedef struct eric_window eric_window;
+struct eric_window
 {
     GtkWidget* window;
     GdkRGBA background_color;
     GdkRGBA background_color_old;
     GdkRGBA background_color_new;
+    GdkRGBA text_color;
+    GdkRGBA text_color_old;
+    GdkRGBA text_color_new;
     double background_change_percentage;
-} eric_window;
+    gboolean (*draw_callback)( GtkWidget* widget, cairo_t* cr, eric_window* w );
+};
+
+double gdk_rgba_get_luminance( GdkRGBA *color )
+{
+	return  ( color->red ) * 0.2126 +
+		( color->green ) * 0.7152 +
+		( color->blue ) * 0.0722;
+}
 
 static void gdk_color_lerp( GdkRGBA* c1, GdkRGBA* c2, double s, GdkRGBA* out )
 {
@@ -38,6 +49,8 @@ static gboolean eric_window_animation_timer( eric_window* w )
 	w->background_change_percentage += 0.05;
 	gdk_color_lerp( &w->background_color_old, &w->background_color_new, 
                         w->background_change_percentage, &w->background_color);
+	gdk_color_lerp( &w->text_color_old, &w->text_color_new, 
+                        w->background_change_percentage, &w->text_color);
 	gtk_widget_queue_draw( w->window );
 
 	if( w->background_change_percentage >= 1.0 ) return FALSE;
@@ -52,7 +65,10 @@ static gboolean eric_window_draw( GtkWidget* widget, cairo_t* cr, eric_window* w
 	gdk_cairo_set_source_rgba( cr, &w->background_color );
 	cairo_paint( cr );	
 	
-    return FALSE;
+    if( w->draw_callback == NULL )
+        return FALSE;
+    else
+        return w->draw_callback( widget, cr, w );
 }
 
 
@@ -75,6 +91,11 @@ void eric_window_gsettings_value_changed( GSettings *settings, const gchar *key,
     {
         w->background_color_old = w->background_color;
         gdk_rgba_parse( &w->background_color_new, g_settings_get_string( settings, "primary-color" ) );
+        w->text_color_old = w->text_color;
+        if( gdk_rgba_get_luminance( &w->background_color_new ) > 0.5 )
+            gdk_rgba_parse( &w->text_color_new, "#000000" );
+        else
+            gdk_rgba_parse( &w->text_color_new, "#FFFFFF" );
         
         w->background_change_percentage = 0.0;
         g_timeout_add( 32, (gpointer)eric_window_animation_timer, w );
@@ -84,6 +105,7 @@ void eric_window_gsettings_value_changed( GSettings *settings, const gchar *key,
 eric_window* eric_window_create( int width, int height, char* title )
 {
     eric_window* w = malloc( sizeof( eric_window ) );
+    w->draw_callback = NULL;
 
     if( title == NULL )
         title = "eric window";
@@ -117,6 +139,10 @@ eric_window* eric_window_create( int width, int height, char* title )
 
     g_signal_connect_data( gsettings, "changed", G_CALLBACK( eric_window_gsettings_value_changed ), (gpointer)w, 0, 0 );
     gdk_rgba_parse( &w->background_color, g_settings_get_string( gsettings, "primary-color" ) );
+    if( gdk_rgba_get_luminance( &w->background_color ) > 0.5 )
+        gdk_rgba_parse( &w->text_color, "#000000" );
+    else
+        gdk_rgba_parse( &w->text_color, "#FFFFFF" );
 
     return w;
 }
