@@ -13,6 +13,7 @@
 #define ERIC_DOCK_TOOLTIP_ITEM_HEIGHT 24.0
 #define UI_SCALE 1.0
 #define SCALE_VALUE(x) (x)*UI_SCALE
+#define BAR_HEIGHT 48.0
 
 #define ICON_STATE_NORMAL 0
 #define ICON_STATE_HOVER 1
@@ -29,6 +30,8 @@ eric_window* dock_window = NULL;
 #include "dock_icon.h"
 
 #include "tooltip_window.h"
+
+#include "clock.h"
 
 //Logic to add a window to the pager items.
 //If a matching class group already exists it will be added to that, otherwise create
@@ -182,6 +185,8 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
 
         x += SCALE_VALUE( 47.0 );
     }
+    clock_draw( cr, 1910, BAR_HEIGHT / 2.0, w );
+
     return FALSE;
 }
 
@@ -273,8 +278,8 @@ void setup_dock_window()
     sw = mon_geom.width;
     sh = mon_geom.height;
 
-    dock_window = eric_window_create( sw, 48 * UI_SCALE, "" );
-    gtk_window_move( GTK_WINDOW( dock_window->window ), 0, sh - 48 * UI_SCALE );
+    dock_window = eric_window_create( sw, BAR_HEIGHT * UI_SCALE, "" );
+    gtk_window_move( GTK_WINDOW( dock_window->window ), 0, sh - BAR_HEIGHT * UI_SCALE );
     gtk_window_set_type_hint( GTK_WINDOW( dock_window->window ), GDK_WINDOW_TYPE_HINT_DOCK );
 
     dock_window->draw_callback = draw_dock_window;
@@ -284,6 +289,9 @@ void setup_dock_window()
     g_signal_connect( G_OBJECT( dock_window->window ), "button-press-event", G_CALLBACK(dock_window_mouse_down), NULL );
 
     gtk_widget_show_now( dock_window->window );
+
+    //Init clock drawing
+    clock_init( dock_window->window );
 }
 
 static void wnck_window_opened( WnckScreen* screen, WnckWindow* window, gpointer data )

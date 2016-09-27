@@ -34,8 +34,8 @@ dock_icon* dock_icon_create( WnckClassGroup* class_group )
     icon->pager_items = NULL;
     icon->icon_state = ICON_STATE_NORMAL;
 
-    icon->width = SCALE_VALUE( 42 );
-    icon->height = SCALE_VALUE( 48 );
+    icon->width = SCALE_VALUE( BAR_HEIGHT - 6.0 );
+    icon->height = SCALE_VALUE( BAR_HEIGHT );
 
     icon->selected_index = 0;
 
