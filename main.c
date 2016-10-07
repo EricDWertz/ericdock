@@ -18,6 +18,7 @@
 #define ICON_STATE_NORMAL 0
 #define ICON_STATE_HOVER 1
 #define ICON_STATE_ACTIVE 2
+#define ICON_STATE_ALERT 3
 
 GList* dock_icons = NULL;
 eric_window* dock_window = NULL;

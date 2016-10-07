@@ -96,14 +96,14 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
     sprintf(timestring,"%i:%02i%s",hour, minute, ampm);
     cairo_text_extents(cr,timestring,&extents);
     text_x-=extents.x_advance;
-    cairo_move_to(cr,text_x, y + extents.y_bearing + extents.height - SCALE_VALUE( 2.0 ) );
+    cairo_move_to(cr,text_x, y - SCALE_VALUE( 4.0 ) );
     cairo_text_path(cr,timestring);
 
-    sprintf(timestring,"%02i/%02i/%02i", 
-            timeinfo->tm_mon, timeinfo->tm_mday, timeinfo->tm_year + 1900 );
+    sprintf(timestring,"%i/%02i/%02i", 
+            timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_year + 1900 );
     cairo_text_extents(cr,timestring,&extents);
     text_x = x - extents.x_advance;
-    cairo_move_to(cr,text_x, y - extents.y_bearing + SCALE_VALUE( 2.0 ) );
+    cairo_move_to(cr,text_x, y - extents.y_bearing + SCALE_VALUE( 4.0 ) );
     cairo_text_path(cr,timestring);
 
     //sprintf(timestring,"%s, %s %i, %i",weekday_names[timeinfo->tm_wday],month_names[timeinfo->tm_mon],timeinfo->tm_mday,timeinfo->tm_year+1900);

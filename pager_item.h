@@ -32,6 +32,11 @@ void pager_item_icon_changed( WnckWindow* window, pager_item* item )
     item->icon_pixbuf = wnck_window_get_mini_icon( window );
 }
 
+void pager_item_state_changed( WnckWindow* window, WnckWindowState changed_mask, WnckWindowState new_state, pager_item* item )
+{
+    //item->icon_pixbuf = wnck_window_get_mini_icon( window );
+}
+
 pager_item* pager_item_create( WnckWindow* window )
 {
     pager_item* item = malloc( sizeof( pager_item ) );
@@ -41,7 +46,8 @@ pager_item* pager_item_create( WnckWindow* window )
     item->icon_state = ICON_STATE_NORMAL;
 
     g_signal_connect( G_OBJECT( window ), "name-changed", G_CALLBACK( pager_item_name_changed ), (gpointer)item );
-    g_signal_connect( G_OBJECT( window ), "icon-changed", G_CALLBACK( pager_item_name_changed ), (gpointer)item );
+    g_signal_connect( G_OBJECT( window ), "icon-changed", G_CALLBACK( pager_item_icon_changed ), (gpointer)item );
+    g_signal_connect( G_OBJECT( window ), "state-changed", G_CALLBACK( pager_item_state_changed ), (gpointer)item );
 
     item->width = SCALE_VALUE( 320 );
     item->height = SCALE_VALUE( 24.0 );

@@ -110,6 +110,9 @@ void dock_icon_activate( dock_icon* icon, Time time, int from_click )
         wnck_window_activate( item->window, time );
         tooltip_window_hide();
     }
+
+    if( icon->icon_state == ICON_STATE_ALERT )
+        icon->icon_state = ICON_STATE_NORMAL;
 }
 
 void dock_icon_mouse_down( dock_icon* icon, double mx, double my, Time time )
