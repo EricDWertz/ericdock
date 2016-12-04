@@ -7,21 +7,11 @@
 
 #include "eric_window.h"
 
-#define ERIC_DOCK_FONT "Source Sans Pro Regular" 
-#define ERIC_DOCK_TOOLTIP_SHADOW_RADIUS 16.0
-#define ERIC_DOCK_TOOLTIP_WIDTH ERIC_DOCK_TOOLTIP_SHADOW_RADIUS + 320.0
-#define ERIC_DOCK_TOOLTIP_ITEM_HEIGHT 24.0
-#define UI_SCALE 1.0
-#define SCALE_VALUE(x) (x)*UI_SCALE
-#define BAR_HEIGHT 48.0
-
-#define ICON_STATE_NORMAL 0
-#define ICON_STATE_HOVER 1
-#define ICON_STATE_ACTIVE 2
-#define ICON_STATE_ALERT 3
-
 GList* dock_icons = NULL;
 eric_window* dock_window = NULL;
+
+#include "ericdock.h"
+#include "clock.h"
 
 //Structure to hold actual pager items
 #include "pager_item.h"
@@ -32,7 +22,6 @@ eric_window* dock_window = NULL;
 
 #include "tooltip_window.h"
 
-#include "clock.h"
 
 //Logic to add a window to the pager items.
 //If a matching class group already exists it will be added to that, otherwise create
@@ -98,12 +87,21 @@ GdkFilterReturn handle_x11_event( GdkXEvent *xevent, GdkEvent *event, gpointer d
         }
         else
         {
-            printf( "Got a number key press event!\n" );
-
-            icon = get_dock_icon_at_position( xev->xkey.keycode - 10 );
-            if( icon )
+            if( xev->xkey.keycode >= 10 && xev->xkey.keycode <= 20 )
             {
-                dock_icon_activate( icon, xev->xkey.time, FALSE );
+                printf( "Got a number key press event!\n" );
+
+                icon = get_dock_icon_at_position( xev->xkey.keycode - 10 );
+                if( icon )
+                {
+                    dock_icon_activate( icon, xev->xkey.time, FALSE );
+                }
+            }
+
+            //L key press to lock the screen TODO: adjust this command
+            if( xev->xkey.keycode == 46 )
+            {
+                system( "/home/eric/EricOS/ericlock/ericlock" );
             }
         }
     }

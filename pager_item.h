@@ -3,12 +3,15 @@
  * pager_item - held by the dock_icon object
  */
 
+#include <string.h>
+#include <stdlib.h>
 #include <gtk/gtk.h>
 
 #define WNCK_I_KNOW_THIS_IS_UNSTABLE
 #include <libwnck/libwnck.h>
 
 #include "drawing.h"
+#include "eric_window.h"
 
 //Structure to hold actual pager items
 typedef struct
@@ -60,7 +63,7 @@ pager_item* pager_item_create( WnckWindow* window )
 int pager_item_mouse_move( pager_item* item, double mx, double my )
 {
     double it, ib, il, ir;
-    int old_state, state_changed;
+    int old_state;
 
     old_state = item->icon_state;
 
