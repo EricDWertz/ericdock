@@ -4,6 +4,7 @@
  */
 
 #include "eric_window.h" 
+#include "dock_icon.h"
 
 #define ERIC_DOCK_FONT "Source Sans Pro Regular" 
 #define ERIC_DOCK_TOOLTIP_SHADOW_RADIUS 16.0
@@ -20,3 +21,6 @@
 
 extern GList* dock_icons;
 extern eric_window* dock_window;
+extern eric_window* tooltip_window;
+extern dock_icon* tooltip_window_icon;
+

@@ -4,11 +4,9 @@
  *
  * renders/handles events based on how many pager_items it contains
  */
+#include "ericdock.h"
 #include "dock_icon.h"
 #include "tooltip_window.h"
-
-eric_window* tooltip_window = NULL;
-dock_icon* tooltip_window_icon = NULL;
 
 dock_icon* dock_icon_create( WnckClassGroup* class_group )
 {

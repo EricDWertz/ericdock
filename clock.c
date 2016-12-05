@@ -9,7 +9,7 @@
 #include "clock.h"
 
 double clock_alpha = 0.75;
-double clock_height = 0.18;
+double clock_height = 18.0;
 
 int displaymode=0;
 
@@ -49,7 +49,9 @@ gboolean clock_refresh(gpointer data)
 
     timeinfo = localtime ( &rawtime );
     if( timeinfo->tm_sec != oldsec );
+    {
         gtk_widget_queue_draw( GTK_WIDGET( data ) );
+    }
 
     return TRUE;
 }

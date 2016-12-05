@@ -2,10 +2,6 @@
 
 #include <gtk/gtk.h>
 #include "eric_window.h"
-#include "dock_icon.h"
-
-extern eric_window* tooltip_window;
-extern dock_icon* tooltip_window_icon;
 
 void tooltip_window_hide();
 gboolean tooltip_window_lose_focus( GtkWidget* widget, GdkEvent* event, gpointer user );

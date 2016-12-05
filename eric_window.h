@@ -11,10 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
- * TODO: add text color
- */
-
 typedef struct eric_window eric_window;
 struct eric_window
 {
