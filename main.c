@@ -22,6 +22,9 @@ eric_window* dock_window = NULL;
 
 #include "tooltip_window.h"
 
+int screen_width;
+int screen_height;
+
 
 //Logic to add a window to the pager items.
 //If a matching class group already exists it will be added to that, otherwise create
@@ -75,7 +78,6 @@ GdkFilterReturn handle_x11_event( GdkXEvent *xevent, GdkEvent *event, gpointer d
 {
     XEvent* xev = (XEvent*)xevent;
     dock_icon* icon;
-    pager_item* item;
 
     Display* dpy = GDK_DISPLAY_XDISPLAY( gdk_display_get_default() );
 
@@ -139,7 +141,7 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
     int i, pager_count, icon_count;
     
     icon_count = g_list_length( dock_icons );
-    x = floor( 960.0 - SCALE_VALUE( 47.0 * (double)icon_count / 2.0 ) );
+    x = floor( (double)(screen_width/2) - SCALE_VALUE( 47.0 * (double)icon_count / 2.0 ) );
     y = SCALE_VALUE( 5.0 );
     cairo_set_operator( cr, CAIRO_OPERATOR_OVER );
     for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
@@ -184,7 +186,7 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
 
         x += SCALE_VALUE( 47.0 );
     }
-    clock_draw( cr, 1910, BAR_HEIGHT / 2.0, w );
+    clock_draw( cr, (double)screen_width-SCALE_VALUE(10), ( BAR_HEIGHT * UI_SCALE ) / 2.0, w );
 
     return FALSE;
 }
@@ -213,8 +215,7 @@ gboolean window_mouse_move( GtkWidget* widget, GdkEvent* event, gpointer user )
     double it, ib, il, ir;
     int old_state, state_changed;
     dock_icon* icon;
-    pager_item* item;
-    GList *icon_list, *item_list;
+    GList *icon_list;
     GdkEventMotion* e = (GdkEventMotion*)event;
 
     mx = e->x;
@@ -253,11 +254,8 @@ void dock_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer user )
         return;
 
     double mx, my;
-    double it, ib, il, ir;
     dock_icon* icon;
-    pager_item* item;
     GList* icon_list;
-    int pager_count;
 
     mx = e->x; my = e->y;
     for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
@@ -269,16 +267,15 @@ void dock_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer user )
 
 void setup_dock_window()
 {
-    GdkScreen* screen = gdk_screen_get_default();
-    int mon = gdk_screen_get_primary_monitor( screen );
+    //GdkScreen* screen = gdk_screen_get_default();
+    GdkMonitor* mon = gdk_display_get_primary_monitor( gdk_display_get_default() );
     GdkRectangle mon_geom;
-    gdk_screen_get_monitor_geometry( screen, mon, &mon_geom );
-    int sw, sh;
-    sw = mon_geom.width;
-    sh = mon_geom.height;
+    gdk_monitor_get_geometry( mon, &mon_geom );
+    screen_width = mon_geom.width;
+    screen_height = mon_geom.height;
 
-    dock_window = eric_window_create( sw, BAR_HEIGHT * UI_SCALE, "" );
-    gtk_window_move( GTK_WINDOW( dock_window->window ), 0, sh - BAR_HEIGHT * UI_SCALE );
+    dock_window = eric_window_create( screen_width, BAR_HEIGHT * UI_SCALE, "" );
+    gtk_window_move( GTK_WINDOW( dock_window->window ), 0, screen_height - BAR_HEIGHT * UI_SCALE );
     gtk_window_set_type_hint( GTK_WINDOW( dock_window->window ), GDK_WINDOW_TYPE_HINT_DOCK );
 
     dock_window->draw_callback = draw_dock_window;
@@ -372,7 +369,6 @@ static void wnck_active_window_changed( WnckScreen* screen, WnckWindow* prev_win
 void init_wnck()
 {
     WnckScreen* screen;
-    GList* window_list;
     screen = wnck_screen_get_default();
     g_signal_connect( screen, "window-opened", G_CALLBACK( wnck_window_opened ), NULL );
     g_signal_connect( screen, "window-closed", G_CALLBACK( wnck_window_closed ), NULL );
