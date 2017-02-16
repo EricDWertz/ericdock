@@ -27,13 +27,11 @@ void tooltip_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer use
     if( e->button != 1 )
         return;
 
-    double mx, my;
-    double it, ib, il, ir;
-    dock_icon* icon;
     pager_item* item;
     GList* pager_list;
 
-    mx = e->x; my = e->y;
+    double my;
+    my = e->y;
     for( pager_list = tooltip_window_icon->pager_items; pager_list != NULL; pager_list = pager_list->next )
     {
         item = pager_list->data;
@@ -48,11 +46,9 @@ void tooltip_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer use
 gboolean tooltip_window_mouse_move( GtkWidget* widget, GdkEvent* event, gpointer user )
 {
     double mx, my;
-    double it, ib, il, ir;
-    int old_state, new_state, state_changed;
-    dock_icon* icon;
+    int state_changed;
     pager_item* item;
-    GList *icon_list, *item_list;
+    GList *item_list;
     GdkEventMotion* e = (GdkEventMotion*)event;
 
     mx = e->x;
@@ -102,6 +98,8 @@ gboolean tooltip_window_draw( GtkWidget* widget, cairo_t* cr, eric_window* w )
     }
 
     cairo_pattern_destroy( pattern );
+
+    return FALSE;
 }
 
 
@@ -140,9 +138,6 @@ void tooltip_window_update_geometry()
 
 void tooltip_window_show()
 {
-    int wx, wy;
-    int w, h;
-
     tooltip_window_update_geometry();
     gtk_widget_show_all( tooltip_window->window );
     gtk_widget_queue_draw( tooltip_window->window );

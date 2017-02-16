@@ -79,7 +79,9 @@ eric_window* eric_window_create( int width, int height, char* title )
     w->draw_callback = NULL;
 
     if( title == NULL )
+    {
         title = "eric window";
+    }
 
 	w->window = gtk_window_new( GTK_WINDOW_TOPLEVEL );
     gtk_window_set_title( GTK_WINDOW( w->window ), title );

@@ -21,6 +21,7 @@ eric_window* dock_window = NULL;
 #include "dock_icon.h"
 
 #include "tooltip_window.h"
+#include "xutils.h"
 
 int screen_width;
 int screen_height;
@@ -36,10 +37,11 @@ void add_window_to_pager( WnckWindow* window )
     dock_icon *icon, *new_dock_icon;
 
     WnckClassGroup* class = wnck_window_get_class_group( window );
+    gchar* instance_name = wnck_window_get_class_instance_name( window );
     for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
     {
         icon = (dock_icon*)icon_list->data;
-        if( icon->class_group == class )
+        if( strcmp( icon->instance_name, instance_name ) == 0 )
         {
             icon->pager_items = g_list_append( icon->pager_items, pager_item_create( window ) );
             found_class_group = 1;
@@ -50,7 +52,7 @@ void add_window_to_pager( WnckWindow* window )
     if( !found_class_group )
     {
         //Add a new dock item
-        new_dock_icon = dock_icon_create( class );
+        new_dock_icon = dock_icon_create( window );
         new_dock_icon->pager_items = g_list_append( 
             new_dock_icon->pager_items,
             pager_item_create( window )

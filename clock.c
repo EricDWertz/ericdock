@@ -48,7 +48,7 @@ gboolean clock_refresh(gpointer data)
     struct tm * timeinfo;
 
     timeinfo = localtime ( &rawtime );
-    if( timeinfo->tm_sec != oldsec );
+    if( timeinfo->tm_sec != oldsec )
     {
         gtk_widget_queue_draw( GTK_WIDGET( data ) );
     }
@@ -71,7 +71,6 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
     //tm_sec tm_min tm_hour
     int hour=timeinfo->tm_hour;
     int minute=timeinfo->tm_min;
-    int second=timeinfo->tm_sec;
     //hour+=minute/60;
     char ampm[3]="am";
     if(hour>=12) 

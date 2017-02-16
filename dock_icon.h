@@ -6,6 +6,7 @@
  * renders/handles events based on how many pager_items it contains
  */
 #include <gtk/gtk.h>
+#include <gdk/gdk.h>
 #include <X11/Xlib.h>
 #include <time.h>
 
@@ -24,10 +25,13 @@ typedef struct
     int icon_state;
     int is_active;
     int selected_index;
+    gchar* instance_name;
 } dock_icon;
 
-dock_icon* dock_icon_create( WnckClassGroup* class_group );
+dock_icon* dock_icon_create( WnckWindow* window );
 pager_item* dock_icon_get_next_pager_item( dock_icon* icon );
 void dock_icon_clear_pager_item_state( dock_icon* icon );
 void dock_icon_activate( dock_icon* icon, Time time, int from_click );
 void dock_icon_mouse_down( dock_icon* icon, double mx, double my, Time time );
+GdkPixbuf* get_icon( WnckWindow* window, guint size );
+char * strip_extension (const char *file);

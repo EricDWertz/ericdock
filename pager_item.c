@@ -10,6 +10,7 @@
 
 #include "ericdock.h"
 #include "drawing.h"
+#include "dock_icon.h"
 
 void pager_item_name_changed( WnckWindow* window, pager_item* item )
 {
@@ -18,7 +19,7 @@ void pager_item_name_changed( WnckWindow* window, pager_item* item )
 
 void pager_item_icon_changed( WnckWindow* window, pager_item* item )
 {
-    item->icon_pixbuf = wnck_window_get_mini_icon( window );
+    item->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 16.0 ) );
 }
 
 void pager_item_state_changed( WnckWindow* window, WnckWindowState changed_mask, WnckWindowState new_state, pager_item* item )
@@ -31,7 +32,7 @@ pager_item* pager_item_create( WnckWindow* window )
     pager_item* item = malloc( sizeof( pager_item ) );
     item->window = window;
     strcpy( item->name, wnck_window_get_name( item->window ) );
-    item->icon_pixbuf = wnck_window_get_mini_icon( item->window );
+    item->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 16.0 ) );
     item->icon_state = ICON_STATE_NORMAL;
 
     g_signal_connect( G_OBJECT( window ), "name-changed", G_CALLBACK( pager_item_name_changed ), (gpointer)item );
