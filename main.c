@@ -21,11 +21,11 @@ eric_window* dock_window = NULL;
 #include "dock_icon.h"
 
 #include "tooltip_window.h"
-#include "xutils.h"
 
 int screen_width;
 int screen_height;
 
+double interface_scale;
 
 //Logic to add a window to the pager items.
 //If a matching class group already exists it will be added to that, otherwise create
@@ -36,8 +36,7 @@ void add_window_to_pager( WnckWindow* window )
     int found_class_group = 0;
     dock_icon *icon, *new_dock_icon;
 
-    WnckClassGroup* class = wnck_window_get_class_group( window );
-    gchar* instance_name = wnck_window_get_class_instance_name( window );
+    const gchar* instance_name = wnck_window_get_class_instance_name( window );
     for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
     {
         icon = (dock_icon*)icon_list->data;
@@ -315,6 +314,9 @@ static void wnck_window_closed( WnckScreen* screen, WnckWindow* window, gpointer
             item = (pager_item*)pager_list->data;
             if( item->window == window )
             {
+                if( GDK_IS_PIXBUF( item->icon_pixbuf ) )
+                    g_object_unref( item->icon_pixbuf );
+
                 icon->pager_items = g_list_remove( icon->pager_items, item );
                 free( item );
                 printf( "Removed pager item\n" );
@@ -377,9 +379,18 @@ void init_wnck()
     g_signal_connect( screen, "active-window-changed", G_CALLBACK( wnck_active_window_changed ), NULL );
 }
 
+void load_gsettings()
+{
+    GSettings* gsettings = g_settings_new ( "org.gnome.desktop.interface" );
+    interface_scale = (double)g_settings_get_uint( gsettings, "scaling-factor" );
+    if( interface_scale < 1.0 )
+        interface_scale = 1.0;
+}
+
 int main( int argc, char* argv[] )
 {
     gtk_init( &argc, &argv );
+    load_gsettings();
 
     setup_dock_window();
     tooltip_window_create( dock_window->window );

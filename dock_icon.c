@@ -7,7 +7,6 @@
 #include "ericdock.h"
 #include "dock_icon.h"
 #include "tooltip_window.h"
-#include "xutils.h"
 
 #include <stdio.h>
 #include <ctype.h>
@@ -19,6 +18,7 @@ dock_icon* dock_icon_create( WnckWindow* window )
     icon->class_group = wnck_window_get_class_group( window );
     icon->instance_name = wnck_window_get_class_instance_name( window );
     icon->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 32.0 ) );
+    g_object_ref( icon->icon_pixbuf );
     icon->pager_items = NULL;
     icon->icon_state = ICON_STATE_NORMAL;
 
