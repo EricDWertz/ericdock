@@ -151,16 +151,19 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
     printf( "class: %s\ninstance%s\n", 
             class_name,
             instance_name );
-    int i;
-    for( i = 0; class_name[i] && i < 256; i++ )
-        class_lower[i] = tolower( class_name[i] );
-    for( i = 0; instance_name[i] && i < 256; i++ )
-        instance_lower[i] = tolower( instance_name[i] );
-
-    //Use the window's icon
-    if( strcmp( class_lower, instance_lower ) != 0 )
+    if( class_name != NULL && instance_name != NULL )
     {
-        pixbuf = wnck_window_get_icon( window );
+        int i;
+        for( i = 0; class_name[i] && i < 256; i++ )
+            class_lower[i] = tolower( class_name[i] );
+        for( i = 0; instance_name[i] && i < 256; i++ )
+            instance_lower[i] = tolower( instance_name[i] );
+
+        //Use the window's icon
+        if( strcmp( class_lower, instance_lower ) != 0 )
+        {
+            pixbuf = wnck_window_get_icon( window );
+        }
     }
 
     //Check for desktop file entry

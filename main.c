@@ -40,7 +40,7 @@ void add_window_to_pager( WnckWindow* window )
     for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
     {
         icon = (dock_icon*)icon_list->data;
-        if( strcmp( icon->instance_name, instance_name ) == 0 )
+        if( icon->instance_name != NULL && instance_name != NULL && strcmp( icon->instance_name, instance_name ) == 0 )
         {
             icon->pager_items = g_list_append( icon->pager_items, pager_item_create( window ) );
             found_class_group = 1;

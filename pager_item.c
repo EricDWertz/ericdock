@@ -76,6 +76,13 @@ int pager_item_mouse_move( pager_item* item, double mx, double my )
 
 void pager_item_draw( pager_item* item, cairo_t* cr, eric_window* w, cairo_pattern_t* pattern )
 {
+    if( !GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    {
+        item->icon_pixbuf = get_icon( item->window, (int)SCALE_VALUE( 16.0 ) );
+        if( !GDK_IS_PIXBUF( item->icon_pixbuf ) )
+            return;
+    }
+
     if( item->icon_state == ICON_STATE_HOVER )
     {
         w->text_color.alpha = 0.25;
