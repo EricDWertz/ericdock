@@ -61,7 +61,7 @@ void clock_init( gpointer window )
     g_timeout_add_seconds(1,clock_refresh, window);
 }
 
-void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
+double clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
 {
     time_t rawtime;
     struct tm * timeinfo;
@@ -87,6 +87,7 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
     if(blurpass==1) cairo_translate(cr,-2.0,0);
     
     cairo_text_extents_t extents;
+    double text_width = 0;
     double text_x = x;
     char timestring[64];
     cairo_set_font_face(cr,cairo_toy_font_face_create("Source Sans Pro",CAIRO_FONT_SLANT_NORMAL,CAIRO_FONT_WEIGHT_NORMAL));
@@ -95,6 +96,7 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
     sprintf(timestring,"%i:%02i%s",hour, minute, ampm);
     cairo_text_extents(cr,timestring,&extents);
     text_x-=extents.x_advance;
+    text_width = text_x;
     cairo_move_to(cr,text_x, y - SCALE_VALUE( 4.0 ) );
     cairo_text_path(cr,timestring);
 
@@ -102,6 +104,7 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
             timeinfo->tm_mon+1, timeinfo->tm_mday, timeinfo->tm_year + 1900 );
     cairo_text_extents(cr,timestring,&extents);
     text_x = x - extents.x_advance;
+    text_width = text_width < text_x? text_x: text_width;
     cairo_move_to(cr,text_x, y - extents.y_bearing + SCALE_VALUE( 4.0 ) );
     cairo_text_path(cr,timestring);
 
@@ -128,9 +131,11 @@ void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass)
     	cairo_stroke_preserve(cr);
     }
     cairo_fill(cr);
+
+    return text_width;
 }
 
-void clock_draw( cairo_t* cr, double x, double y, eric_window* w )
+double clock_draw( cairo_t* cr, double x, double y, eric_window* w )
 {
     //cairo_set_source_rgba (cr, 1.0, 1.0, 1.0, clock_alpha);
     //if(clock_alpha!=0) draw_clock(cr,2.0);  
@@ -147,5 +152,5 @@ void clock_draw( cairo_t* cr, double x, double y, eric_window* w )
     w->text_color.blue = 1.0 - w->text_color.blue;
     w->text_color.alpha = clock_alpha;
     gdk_cairo_set_source_rgba( cr, &w->text_color );
-    clock_draw_timestring( cr, x, y, 0 );
+    return clock_draw_timestring( cr, x, y, 0 );
 }

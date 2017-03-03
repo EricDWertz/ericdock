@@ -8,5 +8,5 @@
 
 gboolean clock_refresh(gpointer data);
 void clock_init( gpointer window );
-void clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass);
-void clock_draw( cairo_t* cr, double x, double y, eric_window* w );
+double clock_draw_timestring(cairo_t* cr, double x, double y, int blurpass);
+double clock_draw( cairo_t* cr, double x, double y, eric_window* w );

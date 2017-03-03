@@ -10,17 +10,20 @@
 GList* dock_icons = NULL;
 eric_window* dock_window = NULL;
 
-#include "ericdock.h"
 #include "clock.h"
+#include "xutils.h"
 
 //Structure to hold actual pager items
 #include "pager_item.h"
+#include "battery.h"
+#include "ericdock.h"
 
 //Stucture to hold class groups... which are icons on the dock
 //Will need to have support for launchers and stuff in the future
 #include "dock_icon.h"
-
 #include "tooltip_window.h"
+
+int show_battery_icon;
 
 int screen_width;
 int screen_height;
@@ -187,7 +190,9 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
 
         x += SCALE_VALUE( 47.0 );
     }
-    clock_draw( cr, (double)screen_width-SCALE_VALUE(10), ( BAR_HEIGHT * UI_SCALE ) / 2.0, w );
+    double clock_width = clock_draw( cr, (double)screen_width-SCALE_VALUE(10), ( BAR_HEIGHT * UI_SCALE ) / 2.0, w );
+    if( show_battery_icon )
+        draw_battery_icon( cr, clock_width-SCALE_VALUE( 48.0 ), (( BAR_HEIGHT * UI_SCALE ) / 2.0)-SCALE_VALUE( 12 ), SCALE_VALUE( 24 ) );
 
     return FALSE;
 }
@@ -289,6 +294,15 @@ void setup_dock_window()
 
     //Init clock drawing
     clock_init( dock_window->window );
+
+    //Check if there's a battery
+    FILE* f = fopen( "/sys/class/power_supply/BAT0/charge_full", "r" );
+    show_battery_icon = f != NULL;
+    if( f )
+        fclose(f);
+
+    //Set window struts
+    xutils_set_strut( gtk_widget_get_window( dock_window->window ), GTK_POS_BOTTOM, SCALE_VALUE( BAR_HEIGHT ), 0, screen_width );
 }
 
 static void wnck_window_opened( WnckScreen* screen, WnckWindow* window, gpointer data )
