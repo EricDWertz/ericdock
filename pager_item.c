@@ -19,11 +19,15 @@ void pager_item_name_changed( WnckWindow* window, pager_item* item )
 
 void pager_item_icon_changed( WnckWindow* window, pager_item* item )
 {
-    if( GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    if( item->icon_pixbuf && GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    {
         g_object_unref( item->icon_pixbuf );
+        item->icon_pixbuf = NULL;
+    }
 
+    printf( "Icon changed %s\n", item->name );
     item->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 16.0 ) );
-    g_object_ref( item->icon_pixbuf );
+    gtk_widget_queue_draw( dock_window->window );
 }
 
 void pager_item_state_changed( WnckWindow* window, WnckWindowState changed_mask, WnckWindowState new_state, pager_item* item )
@@ -36,8 +40,9 @@ pager_item* pager_item_create( WnckWindow* window )
     pager_item* item = malloc( sizeof( pager_item ) );
     item->window = window;
     strcpy( item->name, wnck_window_get_name( item->window ) );
+
     item->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 16.0 ) );
-    g_object_ref( item->icon_pixbuf );
+
     item->icon_state = ICON_STATE_NORMAL;
 
     g_signal_connect( G_OBJECT( window ), "name-changed", G_CALLBACK( pager_item_name_changed ), (gpointer)item );
@@ -76,7 +81,7 @@ int pager_item_mouse_move( pager_item* item, double mx, double my )
 
 void pager_item_draw( pager_item* item, cairo_t* cr, eric_window* w, cairo_pattern_t* pattern )
 {
-    if( !GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    if( item->icon_pixbuf && !GDK_IS_PIXBUF( item->icon_pixbuf ) )
     {
         item->icon_pixbuf = get_icon( item->window, (int)SCALE_VALUE( 16.0 ) );
         if( !GDK_IS_PIXBUF( item->icon_pixbuf ) )

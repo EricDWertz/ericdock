@@ -165,7 +165,9 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
             cairo_fill( cr );
         }
         if( !GDK_IS_PIXBUF( icon->icon_pixbuf ) )
-            icon->icon_pixbuf = wnck_class_group_get_icon( icon->class_group );
+        {
+            icon->icon_pixbuf = gdk_pixbuf_copy( wnck_class_group_get_icon( icon->class_group ) );
+        }
         gdk_cairo_set_source_pixbuf( cr, icon->icon_pixbuf, x+SCALE_VALUE( 4.0 ), y );
         cairo_paint( cr );
 
