@@ -19,9 +19,8 @@ void pager_item_name_changed( WnckWindow* window, pager_item* item )
 
 void pager_item_icon_changed( WnckWindow* window, pager_item* item )
 {
-    if( item->icon_pixbuf && GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    if( item->icon_pixbuf != NULL && !GDK_IS_PIXBUF( item->icon_pixbuf ) )
     {
-        g_object_unref( item->icon_pixbuf );
         item->icon_pixbuf = NULL;
     }
 
@@ -32,6 +31,7 @@ void pager_item_icon_changed( WnckWindow* window, pager_item* item )
 
 void pager_item_state_changed( WnckWindow* window, WnckWindowState changed_mask, WnckWindowState new_state, pager_item* item )
 {
+    printf( "Item state changed %s\n", item->name );
     //item->icon_pixbuf = wnck_window_get_mini_icon( window );
 }
 
@@ -81,7 +81,7 @@ int pager_item_mouse_move( pager_item* item, double mx, double my )
 
 void pager_item_draw( pager_item* item, cairo_t* cr, eric_window* w, cairo_pattern_t* pattern )
 {
-    if( item->icon_pixbuf && !GDK_IS_PIXBUF( item->icon_pixbuf ) )
+    if( item->icon_pixbuf != NULL && !GDK_IS_PIXBUF( item->icon_pixbuf ) )
     {
         item->icon_pixbuf = get_icon( item->window, (int)SCALE_VALUE( 16.0 ) );
         if( !GDK_IS_PIXBUF( item->icon_pixbuf ) )
