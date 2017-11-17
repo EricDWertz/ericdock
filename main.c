@@ -13,9 +13,10 @@ eric_window* dock_window = NULL;
 #include "clock.h"
 #include "xutils.h"
 
+#include "control.h"
+
 //Structure to hold actual pager items
 #include "pager_item.h"
-#include "battery.h"
 #include "ericdock.h"
 
 //Stucture to hold class groups... which are icons on the dock
@@ -194,7 +195,7 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
     }
     double clock_width = clock_draw( cr, (double)screen_width-SCALE_VALUE(10), ( BAR_HEIGHT * UI_SCALE ) / 2.0, w );
     if( show_battery_icon )
-        draw_battery_icon( cr, clock_width-SCALE_VALUE( 48.0 ), (( BAR_HEIGHT * UI_SCALE ) / 2.0)-SCALE_VALUE( 12 ), SCALE_VALUE( 24 ) );
+        draw_battery_icon( cr, clock_width-SCALE_VALUE( 52.0 ), (( BAR_HEIGHT * UI_SCALE ) / 2.0)-SCALE_VALUE( 12 ), SCALE_VALUE( 24 ) );
 
     return FALSE;
 }
@@ -298,10 +299,11 @@ void setup_dock_window()
     clock_init( dock_window->window );
 
     //Check if there's a battery
-    FILE* f = fopen( "/sys/class/power_supply/BAT0/charge_full", "r" );
-    show_battery_icon = f != NULL;
-    if( f )
-        fclose(f);
+    control_init( &show_battery_icon, NULL );
+    //FILE* f = fopen( "/sys/class/power_supply/BAT0/charge_full", "r" );
+    //show_battery_icon = f != NULL;
+    //if( f )
+    //    fclose(f);
 
     //Set window struts
     xutils_set_strut( gtk_widget_get_window( dock_window->window ), GTK_POS_BOTTOM, SCALE_VALUE( BAR_HEIGHT ), 0, screen_width );
