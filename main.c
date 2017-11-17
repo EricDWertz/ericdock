@@ -109,6 +109,10 @@ GdkFilterReturn handle_x11_event( GdkXEvent *xevent, GdkEvent *event, gpointer d
             {
                 system( "/home/eric/EricOS/ericlock/ericlock" );
             }
+            if( xev->xkey.keycode == 39 )
+            {
+                system( "/home/eric/EricOS/ericsnip/ericsnip" );
+            }
         }
     }
     if( xev->type == KeyRelease )

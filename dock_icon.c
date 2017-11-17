@@ -121,12 +121,16 @@ gchar* get_icon_from_desktop( const char* name )
 {
     GKeyFile* key_file = g_key_file_new();
     gchar file[256];
+    gchar* out;
 
     sprintf( file, "/usr/share/applications/%s.desktop", name );
     if( !g_key_file_load_from_file( key_file, file, G_KEY_FILE_NONE, NULL ) )
         return NULL;
 
-    return g_key_file_get_string( key_file, G_KEY_FILE_DESKTOP_GROUP, "Icon", NULL );
+    out = g_key_file_get_string( key_file, G_KEY_FILE_DESKTOP_GROUP, "Icon", NULL );
+    g_key_file_free( key_file );
+
+    return out;
 }
 
 /* Gets the pixbuf from a desktop file's icon name. Based on the same function * from matchbox-desktop
@@ -186,6 +190,7 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
         pixbuf = wnck_window_get_icon( window );
         unref = 0;
     }
+
     if (pixbuf == NULL)
     {
         pixbuf = gtk_icon_theme_load_icon(theme, "application-x-executable",
