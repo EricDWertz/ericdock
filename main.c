@@ -167,6 +167,7 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
         }
         if( !GDK_IS_PIXBUF( icon->icon_pixbuf ) )
         {
+            printf( "Trying to draw without an icon\n" );
             icon->icon_pixbuf = gdk_pixbuf_copy( wnck_class_group_get_icon( icon->class_group ) );
         }
         gdk_cairo_set_source_pixbuf( cr, icon->icon_pixbuf, x+SCALE_VALUE( 4.0 ), y );
@@ -177,10 +178,21 @@ static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w
         {
             //Draw rectangles
             width = (SCALE_VALUE(32.0) / pager_count );  
-            rx = x + SCALE_VALUE(4.0);
             ry = y + SCALE_VALUE(34.0);
             w->text_color.alpha = 0.5;
+
+            //Shadow pass
+            cairo_set_source_rgba( cr, 1.0 - w->text_color.red, 1.0 - w->text_color.green, 1.0 - w->text_color.blue, w->text_color.alpha*0.5 );
+            rx = x + SCALE_VALUE(4.0);
+            for( i = 0; i < pager_count; i++ )
+            {
+                cairo_rectangle( cr, rx+SCALE_VALUE( 2.0 ), ry+SCALE_VALUE( 1.0 ), width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
+                rx += width;
+            }
+            cairo_fill( cr );
+
             gdk_cairo_set_source_rgba( cr, &w->text_color );
+            rx = x + SCALE_VALUE(4.0);
             for( i = 0; i < pager_count; i++ )
             {
                 cairo_rectangle( cr, rx+SCALE_VALUE( 1.0 ), ry, width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
@@ -332,9 +344,6 @@ static void wnck_window_closed( WnckScreen* screen, WnckWindow* window, gpointer
             item = (pager_item*)pager_list->data;
             if( item->window == window )
             {
-                if( GDK_IS_PIXBUF( item->icon_pixbuf ) )
-                    g_object_unref( item->icon_pixbuf );
-
                 icon->pager_items = g_list_remove( icon->pager_items, item );
                 free( item );
                 printf( "Removed pager item\n" );

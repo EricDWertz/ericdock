@@ -135,12 +135,14 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
 {
     static GtkIconTheme* theme = NULL;
     GdkPixbuf* pixbuf = NULL;
+    GdkPixbuf* copy = NULL;
     gchar* stripped = NULL;
     const gchar* class_name = wnck_window_get_class_group_name( window );
     const gchar* instance_name = wnck_window_get_class_instance_name( window );
     gchar instance_lower[256] = {0};
     gchar class_lower[256] = {0};
     gint width, height;
+    int unref = 0;
 
 
     if (theme == NULL) {
@@ -162,6 +164,7 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
         if( strcmp( class_lower, instance_lower ) != 0 )
         {
             pixbuf = wnck_window_get_icon( window );
+            unref = 0;
         }
     }
 
@@ -170,16 +173,25 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
     {
         gchar* icon_name = get_icon_from_desktop( instance_name );
         if( icon_name != NULL )
+        {
             pixbuf = gtk_icon_theme_load_icon( theme, icon_name, 
                             size, GTK_ICON_LOOKUP_FORCE_SIZE, NULL );
+            unref = 1;
+        }
     }
 
     /* Always try and send back something */
     if (pixbuf == NULL)
+    {
         pixbuf = wnck_window_get_icon( window );
+        unref = 0;
+    }
     if (pixbuf == NULL)
+    {
         pixbuf = gtk_icon_theme_load_icon(theme, "application-x-executable",
                                           size, 0, NULL);
+        unref = 1;
+    }
 
     width = gdk_pixbuf_get_width(pixbuf);
     height = gdk_pixbuf_get_height(pixbuf);
@@ -190,28 +202,32 @@ GdkPixbuf* get_icon( WnckWindow* window, guint size )
                                          size,
                                          size,
                                          GDK_INTERP_HYPER);
-        g_object_unref(temp);
+        if( unref )
+            g_object_unref(temp);
     }
 
     g_free(stripped);
 
-    return gdk_pixbuf_copy( pixbuf );
+    copy = gdk_pixbuf_copy( pixbuf );
+    if( unref )
+        g_object_unref( pixbuf );
+    return copy;
 }
 
 /* From matchbox-desktop */
 char* strip_extension (const char *file)
 {
-        char *stripped, *p;
+    char *stripped, *p;
 
-        stripped = g_strdup (file);
+    stripped = g_strdup (file);
 
-        p = strrchr (stripped, '.');
-        if (p &&
-            (!strcmp (p, ".png") ||
-             !strcmp (p, ".svg") ||
-             !strcmp (p, ".xpm")))
-	        *p = 0;
+    p = strrchr (stripped, '.');
+    if (p &&
+        (!strcmp (p, ".png") ||
+         !strcmp (p, ".svg") ||
+         !strcmp (p, ".xpm")))
+        *p = 0;
 
-        return stripped;
+    return stripped;
 }
 
