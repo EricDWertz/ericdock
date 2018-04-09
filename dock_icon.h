@@ -14,24 +14,15 @@
 #include <libwnck/libwnck.h>
 
 #include "pager_item.h"
+#include "eric_window.h"
+#include "dock_objects.h"
 
-typedef struct
-{
-    WnckClassGroup* class_group;
-    GdkPixbuf* icon_pixbuf;
-    GList* pager_items;
-    double x, y;
-    double width, height;
-    int icon_state;
-    int is_active;
-    int selected_index;
-    gchar* instance_name;
-} dock_icon;
-
-dock_icon* dock_icon_create( WnckWindow* window );
+dock_icon* dock_icon_create( WnckWindow* window, eric_window* w );
 pager_item* dock_icon_get_next_pager_item( dock_icon* icon );
 void dock_icon_clear_pager_item_state( dock_icon* icon );
 void dock_icon_activate( dock_icon* icon, Time time, int from_click );
 void dock_icon_mouse_down( dock_icon* icon, double mx, double my, Time time );
+void dock_icon_remove( dock_icon* icon );
 GdkPixbuf* get_icon( WnckWindow* window, guint size );
 char * strip_extension (const char *file);
+void dock_icon_refresh_icon( dock_icon* icon, pager_item* item );

@@ -11,8 +11,118 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <glib.h>
+#include <gdk/gdkx.h>
 
-dock_icon* dock_icon_create( WnckWindow* window )
+//Refreshes the dock icon, if an item is provided try to use it otherwise use the top item
+void dock_icon_refresh_icon( dock_icon* icon, pager_item* item )
+{
+    if( !icon->pager_items )
+        return;
+
+    pager_item* top_item = (pager_item*)icon->pager_items->data;
+
+    if( item == NULL )
+    {
+        item = top_item;
+    }
+
+    if( GDK_IS_PIXBUF( icon->icon_pixbuf ) )
+    {
+        g_object_unref( icon->icon_pixbuf );
+    }
+    icon->icon_pixbuf = get_icon( item->window, (int)SCALE_VALUE( 32.0 ) );
+}
+
+static gboolean dock_icon_draw( GtkWidget* widget, cairo_t* cr, dock_icon* icon )
+{
+    int i, pager_count;
+    double width, rx, ry;
+
+    icon->w->text_color.alpha = 0.25;
+
+    cairo_set_operator( cr, CAIRO_OPERATOR_OVER );
+    gdk_cairo_set_source_rgba( cr, &icon->w->text_color );
+    if( icon->icon_state == ICON_STATE_HOVER )
+    {
+        draw_rounded_rect( cr, 0, 0, icon->width, icon->height, SCALE_VALUE( 2.0 ) );
+        cairo_fill( cr );
+    }
+    if( icon->is_active )
+    {
+        draw_rounded_rect( cr, 0, 0, icon->width, icon->height, SCALE_VALUE( 2.0 ) );
+        cairo_fill( cr );
+    }
+
+    if( !GDK_IS_PIXBUF( icon->icon_pixbuf ) )
+    {
+        printf( "Trying to draw without an icon\n" );
+        dock_icon_refresh_icon( icon, NULL );
+        return FALSE;
+    }
+
+    gdk_cairo_set_source_pixbuf( cr, icon->icon_pixbuf, ( icon->width - SCALE_VALUE( 32.0 ) ) / 2.0, SCALE_VALUE( 2.0 ) );
+    cairo_paint( cr );
+
+    pager_count = g_list_length( icon->pager_items );
+    if( pager_count > 0 )
+    {
+        //Draw rectangles
+        width = ( ( icon->width - SCALE_VALUE(8.0) ) / pager_count );  
+        ry = SCALE_VALUE(36.0);
+        icon->w->text_color.alpha = 0.5;
+
+        //Shadow pass
+        cairo_set_source_rgba( cr, 1.0 - icon->w->text_color.red, 1.0 - icon->w->text_color.green, 1.0 - icon->w->text_color.blue, icon->w->text_color.alpha*0.5 );
+        rx = SCALE_VALUE(4.0);
+        for( i = 0; i < pager_count; i++ )
+        {
+            cairo_rectangle( cr, rx+SCALE_VALUE( 2.0 ), ry+SCALE_VALUE( 1.0 ), width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
+            rx += width;
+        }
+        cairo_fill( cr );
+
+        gdk_cairo_set_source_rgba( cr, &icon->w->text_color );
+        rx = SCALE_VALUE(4.0);
+        for( i = 0; i < pager_count; i++ )
+        {
+            cairo_rectangle( cr, rx+SCALE_VALUE( 1.0 ), ry, width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
+            rx += width;
+        }
+        cairo_fill( cr );
+    }
+
+    icon->w->text_color.alpha = 1.0;
+
+    return TRUE;
+}
+
+static void dock_icon_clicked( GtkButton* button, dock_icon* icon )
+{
+    dock_icon_activate( icon, gdk_x11_get_server_time( gtk_widget_get_window( GTK_WIDGET( button ) ) ), TRUE );
+} 
+
+gboolean dock_icon_leave( GtkWidget* widget, GdkEvent* event, dock_icon* icon )
+{
+    icon->icon_state = ICON_STATE_NORMAL;
+    gtk_widget_queue_draw( widget );
+
+    return FALSE;
+}
+
+gboolean dock_icon_motion( GtkWidget* widget, GdkEvent* event, dock_icon* icon )
+{
+    icon->icon_state = ICON_STATE_HOVER;
+    gtk_widget_queue_draw( widget );
+
+    return FALSE;
+}
+
+void dock_icon_remove( dock_icon* icon )
+{
+    gtk_widget_destroy( icon->button );
+}
+
+dock_icon* dock_icon_create( WnckWindow* window, eric_window* w )
 {
     dock_icon* icon = malloc( sizeof( dock_icon ) );
     icon->class_group = wnck_window_get_class_group( window );
@@ -20,11 +130,23 @@ dock_icon* dock_icon_create( WnckWindow* window )
     icon->icon_pixbuf = get_icon( window, (int)SCALE_VALUE( 32.0 ) );
     icon->pager_items = NULL;
     icon->icon_state = ICON_STATE_NORMAL;
+    icon->w = w;
 
     printf( "Attempted dock icon get%s \n", wnck_class_group_get_id( icon->class_group ) );
 
     icon->width = SCALE_VALUE( BAR_HEIGHT - 6.0 );
-    icon->height = SCALE_VALUE( BAR_HEIGHT );
+    icon->height = SCALE_VALUE( BAR_HEIGHT - 4.0 );
+
+    icon->button = gtk_button_new();
+    gtk_widget_set_size_request( icon->button, icon->width, icon->height );
+    gtk_widget_add_events( icon->button, GDK_POINTER_MOTION_MASK
+            | GDK_ENTER_NOTIFY_MASK | GDK_LEAVE_NOTIFY_MASK
+            | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK );
+    gtk_widget_set_app_paintable( icon->button, TRUE );
+    g_signal_connect( G_OBJECT( icon->button ), "draw", G_CALLBACK( dock_icon_draw ), (void*)icon );
+    g_signal_connect( G_OBJECT( icon->button ), "clicked", G_CALLBACK( dock_icon_clicked ), (void*)icon );
+    g_signal_connect( G_OBJECT( icon->button ), "leave-notify-event", G_CALLBACK( dock_icon_leave ), (void*)icon );
+    g_signal_connect( G_OBJECT( icon->button ), "motion-notify-event", G_CALLBACK( dock_icon_motion ), (void*)icon );
 
     icon->selected_index = 0;
 
@@ -75,6 +197,7 @@ void dock_icon_activate( dock_icon* icon, Time time, int from_click )
 
         if( tooltip_window_icon != icon )
         {
+            tooltip_window_clear_pager_list();
             tooltip_window_icon = icon;
             tooltip_window_show();
             icon->selected_index = 0;
@@ -102,19 +225,6 @@ void dock_icon_activate( dock_icon* icon, Time time, int from_click )
 
     if( icon->icon_state == ICON_STATE_ALERT )
         icon->icon_state = ICON_STATE_NORMAL;
-}
-
-void dock_icon_mouse_down( dock_icon* icon, double mx, double my, Time time )
-{
-    double it, ib, il, ir;
-
-    il = icon->x; ir = icon->x + icon->width;
-    it = icon->y; ib = icon->y + icon->height; 
-
-    if( il < mx && mx < ir && it < my && my < ib )
-    {
-        dock_icon_activate( icon, time, TRUE );
-    }
 }
 
 gchar* get_icon_from_desktop( const char* name )

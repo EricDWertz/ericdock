@@ -8,6 +8,7 @@
 #include "eric_window.h"
 
 GList* dock_icons = NULL;
+GtkWidget* dock_icons_box;
 eric_window* dock_window = NULL;
 
 #include "clock.h"
@@ -46,7 +47,7 @@ void add_window_to_pager( WnckWindow* window )
         icon = (dock_icon*)icon_list->data;
         if( icon->instance_name != NULL && instance_name != NULL && strcmp( icon->instance_name, instance_name ) == 0 )
         {
-            icon->pager_items = g_list_append( icon->pager_items, pager_item_create( window ) );
+            pager_item_create( window, icon );
             found_class_group = 1;
             break;
         }
@@ -55,13 +56,12 @@ void add_window_to_pager( WnckWindow* window )
     if( !found_class_group )
     {
         //Add a new dock item
-        new_dock_icon = dock_icon_create( window );
-        new_dock_icon->pager_items = g_list_append( 
-            new_dock_icon->pager_items,
-            pager_item_create( window )
-        );
+        new_dock_icon = dock_icon_create( window, dock_window );
+        pager_item_create( window, new_dock_icon );
 
         dock_icons = g_list_append( dock_icons, new_dock_icon );
+        gtk_container_add( GTK_CONTAINER( dock_icons_box ), new_dock_icon->button );
+        gtk_widget_show( new_dock_icon->button );
     }
 }
 
@@ -143,72 +143,10 @@ GdkFilterReturn handle_x11_event( GdkXEvent *xevent, GdkEvent *event, gpointer d
 
 static gboolean draw_dock_window( GtkWidget* widget, cairo_t* cr, eric_window* w )
 {
-    GList* icon_list = dock_icons;
-    dock_icon* icon;
-    double x, y;
-    double rx, ry, width;
-    int i, pager_count, icon_count;
-    
-    icon_count = g_list_length( dock_icons );
-    x = floor( (double)(screen_width/2) - SCALE_VALUE( 47.0 * (double)icon_count / 2.0 ) );
-    y = SCALE_VALUE( 5.0 );
+    //Icon drawing is handled by their draw events
+
     cairo_set_operator( cr, CAIRO_OPERATOR_OVER );
-    for( icon_list = dock_icons; icon_list != NULL; icon_list = icon_list->next )
-    {
-        icon = (dock_icon*)icon_list->data;
 
-        w->text_color.alpha = 0.25;
-        gdk_cairo_set_source_rgba( cr, &w->text_color );
-        if( icon->icon_state == ICON_STATE_HOVER )
-        {
-            draw_rounded_rect( cr, x, y-SCALE_VALUE( 2.0 ), SCALE_VALUE( 42.0 ), SCALE_VALUE( 42.0 ), SCALE_VALUE( 2.0 ) );
-            cairo_fill( cr );
-        }
-        if( icon->is_active )
-        {
-            draw_rounded_rect( cr, x, y-SCALE_VALUE( 2.0 ), SCALE_VALUE( 42.0 ), SCALE_VALUE( 42.0 ), SCALE_VALUE( 2.0 ) );
-            cairo_fill( cr );
-        }
-        if( !GDK_IS_PIXBUF( icon->icon_pixbuf ) )
-        {
-            printf( "Trying to draw without an icon\n" );
-            icon->icon_pixbuf = gdk_pixbuf_copy( wnck_class_group_get_icon( icon->class_group ) );
-        }
-        gdk_cairo_set_source_pixbuf( cr, icon->icon_pixbuf, x+SCALE_VALUE( 4.0 ), y );
-        cairo_paint( cr );
-
-        pager_count = g_list_length( icon->pager_items );
-        if( pager_count > 0 )
-        {
-            //Draw rectangles
-            width = (SCALE_VALUE(32.0) / pager_count );  
-            ry = y + SCALE_VALUE(34.0);
-            w->text_color.alpha = 0.5;
-
-            //Shadow pass
-            cairo_set_source_rgba( cr, 1.0 - w->text_color.red, 1.0 - w->text_color.green, 1.0 - w->text_color.blue, w->text_color.alpha*0.5 );
-            rx = x + SCALE_VALUE(4.0);
-            for( i = 0; i < pager_count; i++ )
-            {
-                cairo_rectangle( cr, rx+SCALE_VALUE( 2.0 ), ry+SCALE_VALUE( 1.0 ), width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
-                rx += width;
-            }
-            cairo_fill( cr );
-
-            gdk_cairo_set_source_rgba( cr, &w->text_color );
-            rx = x + SCALE_VALUE(4.0);
-            for( i = 0; i < pager_count; i++ )
-            {
-                cairo_rectangle( cr, rx+SCALE_VALUE( 1.0 ), ry, width-SCALE_VALUE( 2.0 ), SCALE_VALUE( 4.0 ) );
-                rx += width;
-            }
-            cairo_fill( cr );
-        }
-        icon->x = x;
-        icon->y = y;
-
-        x += SCALE_VALUE( 47.0 );
-    }
     double clock_width = clock_draw( cr, (double)screen_width-SCALE_VALUE(10), ( BAR_HEIGHT * UI_SCALE ) / 2.0, w );
     if( show_battery_icon )
         draw_battery_icon( cr, clock_width-SCALE_VALUE( 52.0 ), (( BAR_HEIGHT * UI_SCALE ) / 2.0)-SCALE_VALUE( 12 ), SCALE_VALUE( 24 ) );
@@ -236,7 +174,7 @@ void grab_keys()
 
 gboolean window_mouse_move( GtkWidget* widget, GdkEvent* event, gpointer user )
 {
-    double mx, my;
+    /*double mx, my;
     double it, ib, il, ir;
     int old_state, state_changed;
     dock_icon* icon;
@@ -267,14 +205,14 @@ gboolean window_mouse_move( GtkWidget* widget, GdkEvent* event, gpointer user )
             if( state_changed )
                 gtk_widget_queue_draw( dock_window->window );
         }
-    }
+    }*/
 
     return FALSE;
 }
 
 void dock_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer user )
 {
-    GdkEventButton* e = (GdkEventButton*)event;
+    /*GdkEventButton* e = (GdkEventButton*)event;
     if( e->button != 1 )
         return;
 
@@ -287,7 +225,7 @@ void dock_window_mouse_down( GtkWidget* widget, GdkEvent* event, gpointer user )
     {
         icon = (dock_icon*)icon_list->data;
         dock_icon_mouse_down( icon, mx, my, e->time );
-    }
+    }*/
 }
 
 void setup_dock_window()
@@ -308,6 +246,13 @@ void setup_dock_window()
     gtk_widget_add_events( dock_window->window, GDK_POINTER_MOTION_MASK | GDK_BUTTON_PRESS_MASK );
     g_signal_connect( G_OBJECT( dock_window->window ), "motion-notify-event", G_CALLBACK(window_mouse_move), NULL );
     g_signal_connect( G_OBJECT( dock_window->window ), "button-press-event", G_CALLBACK(dock_window_mouse_down), NULL );
+
+    //Add Dock icon box
+    dock_icons_box = gtk_button_box_new( GTK_ORIENTATION_HORIZONTAL );
+    gtk_button_box_set_layout( GTK_BUTTON_BOX( dock_icons_box ), GTK_BUTTONBOX_CENTER );
+    //gtk_button_box_set_child_non_homogeneous( GTK_BUTTON_BOX( dock_icons_box ), TRUE );
+    gtk_container_add( GTK_CONTAINER( dock_window->window ), dock_icons_box );
+    gtk_widget_show( dock_icons_box );
 
     gtk_widget_show_now( dock_window->window );
 
@@ -357,6 +302,7 @@ static void wnck_window_closed( WnckScreen* screen, WnckWindow* window, gpointer
         if( icon->pager_items == NULL )
         {
             dock_icons = g_list_remove( dock_icons, icon );
+            dock_icon_remove( icon );
             free( icon );
             printf( "Removed dock icon\n" );
             break;
